@@ -72,5 +72,6 @@ Dockerized Django + Postgres on **Render**, fronted by **Cloudflare** (`rcca.hec
 ## Links
 
 - 🔗 **Live demo: [rcca.hector-garza.com](https://rcca.hector-garza.com)** (Render free tier — first load may cold-start; picking a sample runs the live agent, ~10–30s)
+- ▶ **60-second walkthrough (no API key, instant): [rcca.hector-garza.com/demo](https://rcca.hector-garza.com/demo)** — the whole flow on a pre-baked investigation
 - 🧠 Decision record: [`DECISIONS.md`](./DECISIONS.md)
 - 🎥 Whiteboard walkthrough: _TBD_
