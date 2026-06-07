@@ -35,3 +35,11 @@ Investigation drafting drops from hours to minutes, every RCCA comes out in a co
 - **Local run:** one command — `docker compose up` brings up Postgres + the web app, runs migrations, and serves on `:8000`. A `/healthz` endpoint and the home page both assert live DB connectivity (the M0 acceptance criterion).
 - **Quality gate:** `pytest` + `ruff` wired into GitHub Actions CI against a Postgres service container. **No `ANTHROPIC_API_KEY` in CI** — the agent gets mocked in unit tests (per `PLAN.md` testing strategy), so live API calls never run in CI.
 - **Model choice (default, revisit at M3):** orchestration will be written model-agnostic (model id read from config). Default to **`claude-sonnet-4-6`** for the cost-capped public demo (`SPEC.md` §9), with **`claude-opus-4-8`** as the drop-in option when D4 root-cause reasoning needs the extra depth. Rationale belongs on camera; this is the starting position, not a locked call. *(Open question from `SPEC.md` §11.)*
+
+### M1 — domain model + sign-off state machine (recorded as built)
+Built TDD; full design + transition table in `docs/superpowers/specs/2026-06-07-m1-state-machine-design.md`.
+- **All transitions funnel through `rcca/state.py`** so every change writes an `AuditEvent` — the audit trail is a side effect of the only path that can change a section, not something callers must remember to do.
+- **`is_capa_ready` is derived, never stored** (no setter). CAPA-readiness is purely a function of section states, so it cannot be forced — this is the mechanism behind "nothing reaches CAPA without sign-off."
+- **Editing an Approved section reverts it** to `Engineer-edited` and clears the approver. Approved text can never silently change, and readiness self-corrects the instant any section is touched.
+- **All five sections (D2/D3/D4/D5/D7) required**; approver captured as a free-text name + timestamp (no auth — a demo session is enough, `SPEC.md` §4.4).
+- **Tests validated by mutation:** after the suite went green, each invariant (revert, empty-text guard, no-op re-approve, `is_capa_ready`) was broken to confirm a test caught it — guarding against tests that pass for the wrong reason.

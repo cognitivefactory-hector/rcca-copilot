@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M0 complete (scaffold).** A Django + Postgres app runs under Docker; `pytest` + `ruff` are green and wired into GitHub Actions CI. No domain logic yet — **M1 (sign-off state machine, TDD) is next.** The source of truth for design is three planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), and `DECISIONS.md` (the decision record). Read those before writing code.
+**M1 complete (trust backbone).** The domain model + sign-off state machine are built TDD and fully tested; **M2 (synthetic corpus + retrieval tools) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
+
+**The state machine is the heart of the project — respect its boundary:**
+- All section transitions go through `rcca/state.py` (`edit_section`, `approve_section`, `is_capa_ready`) so every change is logged to `AuditEvent`. Do not mutate `Section.state`/`current_text` directly in views or the agent — call the state functions.
+- `Investigation.is_capa_ready` is a **derived property with no setter** — it's a function of section states, never stored. Keep it that way; that's what makes "you cannot force CAPA-ready" true.
+- Models live in `rcca/models.py` (declarative); behavior lives in `rcca/state.py`. `CandidateCause`/`EvidenceRef` exist but are inert until the agent fills them in M3.
+- Schema changes: one migration so far (`rcca/migrations/0001_initial.py`). Run `makemigrations` after model edits; CI runs `makemigrations --check`.
 
 ## What this project is
 

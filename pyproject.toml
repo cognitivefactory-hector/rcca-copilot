@@ -30,6 +30,8 @@ include = ["config*", "rcca*"]
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+# Generated migrations aren't hand-maintained; don't lint their formatting.
+extend-exclude = ["*/migrations/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "DJ"]
