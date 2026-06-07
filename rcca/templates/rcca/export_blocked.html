@@ -1,0 +1,13 @@
+{% extends "rcca/base.html" %}
+{% block title %}Export locked — {{ investigation.nonconformance.nc_id }}{% endblock %}
+{% block content %}
+  <div class="gatepage">
+    <span class="stamp stamp--blocked">Export locked</span>
+    <h1 class="title" style="margin-top:1.5rem;">Not CAPA-ready.</h1>
+    <p class="lede" style="margin:0 auto 1.5rem;">
+      Export is blocked until every D-section is approved. This gate is the point:
+      no machine conclusion reaches a CAPA without the engineer's sign-off.
+    </p>
+    <a class="btn" href="{% url 'rcca:workspace' investigation.pk %}">← Back to workspace</a>
+  </div>
+{% endblock %}
