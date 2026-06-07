@@ -1,13 +1,14 @@
 import json
 
 from django.db import OperationalError, connection
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from . import corpus, state
 from .agent.orchestrator import run_investigation
 from .agent.persist import persist_draft
 from .agent.tools import get_process_data
+from .export import render_markdown
 from .models import CandidateCause, Investigation, Nonconformance, Section
 
 
@@ -145,15 +146,55 @@ def approve_section(request, pk):
     return _render_card(request, section)
 
 
+def _blocked(request, investigation):
+    return HttpResponseForbidden(
+        render(request, "rcca/export_blocked.html", {"investigation": investigation}).content
+    )
+
+
 def export(request, pk):
+    """Preview the rendered 8D / CAPA document (gated on CAPA-ready)."""
     investigation = get_object_or_404(Investigation, pk=pk)
     if not investigation.is_capa_ready:
-        return HttpResponseForbidden(
-            render(
-                request,
-                "rcca/export_blocked.html",
-                {"investigation": investigation},
-            ).content
-        )
-    # M4 ships the gate; M5 renders the actual 8D/CAPA document + audit diff.
-    return render(request, "rcca/export_ready.html", {"investigation": investigation})
+        return _blocked(request, investigation)
+    return render(
+        request,
+        "rcca/export_preview.html",
+        {"investigation": investigation, "document": render_markdown(investigation)},
+    )
+
+
+def export_md(request, pk):
+    """Download the 8D / CAPA document as Markdown (gated on CAPA-ready)."""
+    investigation = get_object_or_404(Investigation, pk=pk)
+    if not investigation.is_capa_ready:
+        return _blocked(request, investigation)
+    response = HttpResponse(render_markdown(investigation), content_type="text/markdown")
+    filename = f"{investigation.nonconformance.nc_id}-8D.md"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def audit(request, pk):
+    """The audit trail: agent proposal vs. engineer's final, per section, plus the
+    event timeline. Available anytime — it is the record."""
+    investigation = get_object_or_404(Investigation, pk=pk)
+    rows = [
+        {
+            "section": s,
+            "proposed": s.agent_proposed_text,
+            "final": s.current_text,
+            "edited": s.current_text != s.agent_proposed_text,
+        }
+        for s in investigation.sections.order_by("d_number")
+    ]
+    return render(
+        request,
+        "rcca/audit.html",
+        {
+            "investigation": investigation,
+            "nc": investigation.nonconformance,
+            "rows": rows,
+            "events": investigation.audit_events.all(),
+        },
+    )

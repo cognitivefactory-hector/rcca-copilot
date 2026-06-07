@@ -8,8 +8,11 @@
   <div class="specsheet">
     <div class="specsheet__head">
       <strong>{{ nc.nc_id }} · {{ nc.title }}</strong>
-      <input id="engineer" name="engineer" value="Engineer" aria-label="Engineer name"
-             style="font-family:var(--mono);font-size:0.75rem;border:1px solid var(--line);padding:0.3rem 0.5rem;background:var(--paper);">
+      <span style="display:flex;align-items:center;gap:0.8rem;">
+        <a href="{% url 'rcca:audit' investigation.pk %}" style="font-family:var(--mono);font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;">Audit trail →</a>
+        <input id="engineer" name="engineer" value="Engineer" aria-label="Engineer name"
+               style="font-family:var(--mono);font-size:0.75rem;border:1px solid var(--line);padding:0.3rem 0.5rem;background:var(--paper);">
+      </span>
     </div>
     <div class="specsheet__grid">
       <div class="field"><div class="field__k">Part</div><div class="field__v">{{ nc.part_number }}</div></div>
