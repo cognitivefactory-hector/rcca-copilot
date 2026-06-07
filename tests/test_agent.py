@@ -200,6 +200,33 @@ def test_run_investigation_accepts_insufficient_evidence_for_thin_data():
     assert draft.causes[0].evidence == []
 
 
+def test_run_investigation_caps_a_verbose_cause_list():
+    from rcca.agent import orchestrator
+
+    cited = {
+        "source_type": "process_data", "source_id": "PD-LOT-AN-42",
+        "locator": "PD-AN-42-03", "excerpt": "11.3 V",
+    }
+    verbose = dict(SAMPLE_DRAFT_JSON)
+    # A full 6M matrix, emitted twice (like the live model did) — 12 causes.
+    verbose["candidate_causes"] = [
+        {"category": cat, "description": f"{cat} cause.", "confidence": "high",
+         "insufficient_evidence": False, "evidence": [cited]}
+        for _ in range(2)
+        for cat in ("machine", "man", "method", "material", "measurement", "environment")
+    ]
+    client = FakeAnthropicClient([
+        _response("end_turn", [_text("done")]),
+        _response("end_turn", [_text(json.dumps(verbose))]),
+    ])
+
+    draft = orchestrator.run_investigation(
+        {"nc_id": "X", "lot": "L", "spec_violated": "S"}, client=client
+    )
+    assert len(draft.causes) <= 4
+    assert len({c.category for c in draft.causes}) == len(draft.causes)  # one per category
+
+
 def test_persist_draft_writes_proposal_causes_evidence_and_audit(db):
     from rcca.agent import schemas
     from rcca.agent.persist import persist_draft

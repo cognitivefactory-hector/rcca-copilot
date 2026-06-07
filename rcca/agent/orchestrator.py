@@ -20,6 +20,42 @@ class GroundingError(Exception):
     """Raised when a candidate cause asserts a root cause with no citation."""
 
 
+_CONFIDENCE_RANK = {"high": 3, "medium": 2, "low": 1}
+MAX_CAUSES = 4
+
+
+def _cause_strength(cause):
+    """Sort key: cited beats insufficient, then confidence, then evidence count."""
+    cited = 1 if cause.evidence and not cause.insufficient_evidence else 0
+    return (cited, _CONFIDENCE_RANK.get(cause.confidence, 0), len(cause.evidence))
+
+
+def focus_causes(causes, max_total=MAX_CAUSES):
+    """Trim the model's candidate causes to a focused, non-redundant set.
+
+    A presentation/selection layer over the agent output (grounding is untouched —
+    every kept cause keeps its citations): dedupe identical causes, keep the
+    best-supported cause per 6M category, and cap to `max_total`, best first.
+    Guarantees a tight list regardless of how verbose the model was.
+    """
+    seen = set()
+    deduped = []
+    for cause in causes:
+        key = (cause.category, cause.description.strip().lower())
+        if key not in seen:
+            seen.add(key)
+            deduped.append(cause)
+
+    best_per_category = {}
+    for cause in deduped:
+        current = best_per_category.get(cause.category)
+        if current is None or _cause_strength(cause) > _cause_strength(current):
+            best_per_category[cause.category] = cause
+
+    ordered = sorted(best_per_category.values(), key=_cause_strength, reverse=True)
+    return ordered[:max_total]
+
+
 def _system_blocks():
     # Stable prefix — prompt-cached so the method guide + corpus aren't re-billed.
     return [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
@@ -81,6 +117,7 @@ def run_investigation(nc, *, client=None, model=None) -> InvestigationDraft:
     )
 
     draft = parse_draft(json.loads(_first_text(final)))
+    draft.causes = focus_causes(draft.causes)  # tighten to a focused, non-redundant set
     enforce_grounding(draft)
     return draft
 
