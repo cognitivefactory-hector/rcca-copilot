@@ -1,0 +1,14 @@
+{% extends "rcca/base.html" %}
+{% block title %}Export — {{ investigation.nonconformance.nc_id }}{% endblock %}
+{% block content %}
+  <p class="eyebrow">Export · 8D / CAPA document</p>
+  <div style="display:flex;align-items:center;gap:1rem;justify-content:space-between;flex-wrap:wrap;margin-bottom:1rem;">
+    <span class="stamp" style="font-size:1rem;transform:rotate(-2deg);">CAPA-ready ✓</span>
+    <span style="display:flex;gap:0.6rem;">
+      <a class="btn btn--primary" href="{% url 'rcca:export_md' investigation.pk %}">Download .md ↧</a>
+      <a class="btn" href="{% url 'rcca:audit' investigation.pk %}">Audit trail</a>
+      <a class="btn" href="{% url 'rcca:workspace' investigation.pk %}">← Workspace</a>
+    </span>
+  </div>
+  <pre class="doc">{{ document }}</pre>
+{% endblock %}

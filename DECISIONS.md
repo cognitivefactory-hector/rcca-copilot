@@ -65,3 +65,10 @@ Built with the frontend-design skill (templates) and TDD (view logic); full desi
 - **The engineer approves the evidence, not the prose.** The D4 panel shows each candidate cause with its confidence (or an "insufficient evidence" flag), its citation cards (source_id + locator + excerpt), and a Plotly chart of the cited lot's process-data trend — so the anomaly is visible, not just asserted.
 - **Auto-run on pick, made idempotent.** The owner chose auto-run for a smoother demo; re-picking a sample shows the existing investigation rather than re-calling the model, which (with M3's prompt caching + token caps) keeps the cost-guard intent of SPEC §9.
 - **Views never touch sign-off state directly** — edit/approve go through `state.py`, so the audit trail and the no-forced-CAPA-ready invariant hold the same way from the UI as from code. Aesthetic: an engineering-document / instrument-panel look, deliberately not generic-SaaS, because the artifact is part of the portfolio signal.
+
+### M5 — export + audit trail (recorded as built)
+Built TDD; full design in `docs/superpowers/specs/2026-06-07-m5-export-audit-design.md`.
+- **The export is the engineer's final content, not the agent's.** `render_markdown` emits each section's approved `current_text` with the approver of record — so the document an auditor receives carries the human's text and name, and the agent's draft is nowhere in it. Verified live: a section the engineer rewrote shows the revised text in the `.md`.
+- **The audit trail is the differentiator made concrete.** Side-by-side agent-proposal vs engineer-final, per section, plus the event timeline — the diff *is* the evidence of human judgment, which is exactly what a NADCAP auditor wants to see. It's viewable anytime, not gated, because it's the record.
+- **Export stays gated; the audit doesn't.** Download/preview return 403 until CAPA-ready (mutation-tested), preserving the sign-off gate; the audit view is always open so the reasoning is always inspectable.
+- **Markdown, not PDF (yet).** Pure/dependency-free renderer, copy- and diff-friendly, trivially testable; PDF deferred as optional per SPEC.

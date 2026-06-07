@@ -1,0 +1,45 @@
+{% extends "rcca/base.html" %}
+{% block title %}Audit trail — {{ nc.nc_id }}{% endblock %}
+{% block content %}
+  <p class="eyebrow">Audit trail · what the agent proposed vs. what the engineer signed</p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;">
+    <h1 class="title" style="font-size:1.8rem;">{{ nc.nc_id }}</h1>
+    <a class="btn" href="{% url 'rcca:workspace' investigation.pk %}">← Workspace</a>
+  </div>
+
+  {% for row in rows %}
+    <div class="audit-row">
+      <div class="audit-row__head">
+        <span class="section__title">{{ row.section.d_number }} — {{ row.section.title }}</span>
+        {% if row.edited %}
+          <span class="badge badge--engineer_edited">Edited</span>
+        {% else %}
+          <span class="badge badge--drafted">As drafted</span>
+        {% endif %}
+      </div>
+      <div class="diff">
+        <div class="diff__col">
+          <div class="diff__k">Agent proposed</div>
+          <div class="diff__t">{{ row.proposed|default:"—" }}</div>
+        </div>
+        <div class="diff__col diff__col--final">
+          <div class="diff__k">Engineer's final{% if row.section.approver_name %} · signed {{ row.section.approver_name }}{% endif %}</div>
+          <div class="diff__t">{{ row.final|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="evidence__h" style="margin-top:2rem;">Event log</div>
+  <ol class="timeline">
+    {% for e in events %}
+      <li>
+        <span class="tl-type tl-type--{{ e.event_type }}">{{ e.get_event_type_display }}</span>
+        <span class="tl-meta">{{ e.section.d_number }} · {{ e.actor }} · {{ e.created_at|date:"Y-m-d H:i" }} UTC</span>
+        {% if e.from_state != e.to_state %}<span class="tl-meta">{{ e.from_state }} → {{ e.to_state }}</span>{% endif %}
+      </li>
+    {% empty %}
+      <li><span class="tl-meta">No events recorded.</span></li>
+    {% endfor %}
+  </ol>
+{% endblock %}

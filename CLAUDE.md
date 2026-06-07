@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M4 complete (workspace UI).** The full pipeline is now clickable: pick a sample → the agent drafts a cited 8D → edit/approve each section → export unlocks only when CAPA-ready. **M5 (export document + audit-diff view) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
+**M5 complete (export + audit).** The full pipeline works end to end: pick a sample → cited 8D draft → edit/approve → export the 8D/CAPA Markdown (gated on CAPA-ready) and view the agent-vs-engineer audit trail. **M6 (README polish + deploy) is next, then M7 (decision record + whiteboard).** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
 
@@ -32,6 +32,11 @@ Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rc
 - **Picking a sample auto-runs the agent once** (`start_sample`), then is idempotent — re-picking shows the existing investigation without re-running (the cost guard). The agent call needs `ANTHROPIC_API_KEY`; to view the workspace without a key, seed an investigation + `persist_draft` via `manage.py shell`.
 - All section mutations go through `state.py` (edit/approve) — the views never touch `Section.state` directly. **Export is gated on `is_capa_ready`** (`export` view returns 403 until every section is approved); that gate is mutation-tested.
 - View tests (`tests/test_views.py`) mock the agent (`monkeypatch rcca.views.run_investigation`). The M0 home smoke test moved DB connectivity to `/healthz` when home became the sample picker.
+
+**Export + audit (M5):**
+- `rcca/export.py` `render_markdown(investigation)` is a **pure, deterministic** function (no `datetime.now()`) → the 8D/CAPA document from the *final* `current_text` + per-section approver/timestamp + D4 causes/citations + disclaimer. Strong TDD target (`tests/test_export.py`).
+- `export` view = preview page; `export_md` view = `text/markdown` download (`Content-Disposition: attachment`). **Both gated on `is_capa_ready` (403 otherwise)** — same gate as the M4 export button, mutation-tested.
+- `audit` view (`/investigations/<pk>/audit`) is **available anytime** (it's the record): per-section side-by-side `agent_proposed_text` vs `current_text` with an Edited/As-drafted flag, plus the `AuditEvent` timeline. The diff is the evidence of human judgment.
 
 ## What this project is
 

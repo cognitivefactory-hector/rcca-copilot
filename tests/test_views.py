@@ -132,3 +132,45 @@ def test_export_blocked_until_all_sections_approved(client, investigation):
     response = client.get(reverse("rcca:export", args=[investigation.pk]))
     assert response.status_code == 200
     assert b"CAPA-ready" in response.content
+
+
+def _approve_all(client, investigation):
+    for section in investigation.sections.all():
+        client.post(reverse("rcca:approve_section", args=[section.pk]), {"engineer": "Hector"})
+
+
+def test_export_download_blocked_until_capa_ready(client, investigation):
+    response = client.get(reverse("rcca:export_md", args=[investigation.pk]))
+    assert response.status_code == 403
+
+    _approve_all(client, investigation)
+    response = client.get(reverse("rcca:export_md", args=[investigation.pk]))
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("text/markdown")
+    assert "attachment" in response["Content-Disposition"]
+    assert "NC-DEMO-001" in response["Content-Disposition"]
+    assert b"## D2" in response.content
+
+
+def test_export_preview_shows_document_and_download_link(client, investigation):
+    _approve_all(client, investigation)
+    response = client.get(reverse("rcca:export", args=[investigation.pk]))
+    assert response.status_code == 200
+    assert b"8D / CAPA" in response.content  # rendered document heading
+    assert reverse("rcca:export_md", args=[investigation.pk]).encode() in response.content
+
+
+def test_audit_view_shows_proposal_vs_final_and_events(client, investigation):
+    section = investigation.sections.get(d_number="D2")
+    client.post(
+        reverse("rcca:edit_section", args=[section.pk]),
+        {"text": "Engineer-revised D2.", "engineer": "Hector"},
+    )
+
+    response = client.get(reverse("rcca:audit", args=[investigation.pk]))
+    assert response.status_code == 200
+    body = response.content
+    assert b"Agent proposal for D2." in body   # the agent's original
+    assert b"Engineer-revised D2." in body     # the engineer's final
+    assert b"Edited" in body                    # the changed-section flag
+    assert b"EDIT" in body or b"Edit" in body   # the event timeline
