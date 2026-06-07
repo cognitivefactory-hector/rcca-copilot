@@ -27,6 +27,37 @@ def home(request):
     return render(request, "rcca/home.html", {"samples": corpus.SAMPLE_NCS.values()})
 
 
+def demo(request):
+    """A narrated walkthrough over a pre-baked investigation — no agent call."""
+    from .demo import ensure_demo_investigation
+
+    investigation = ensure_demo_investigation()
+    sections = list(investigation.sections.order_by("d_number"))
+    d4 = next((s for s in sections if s.d_number == "D4"), None)
+    causes = (
+        CandidateCause.objects.filter(section=d4).prefetch_related("evidence_refs") if d4 else []
+    )
+    audit_rows = [
+        {"section": s, "proposed": s.agent_proposed_text, "final": s.current_text,
+         "edited": s.current_text != s.agent_proposed_text}
+        for s in sections
+    ]
+    return render(
+        request,
+        "rcca/demo.html",
+        {
+            "nc": investigation.nonconformance,
+            "investigation": investigation,
+            "sections": sections,
+            "causes": causes,
+            "chart_json": json.dumps(_process_chart(investigation.nonconformance.lot)),
+            "audit_rows": audit_rows,
+            "document": render_markdown(investigation),
+            **_gate_ctx(investigation),
+        },
+    )
+
+
 def healthz(request):
     ok = _db_ok()
     return JsonResponse({"status": "ok" if ok else "degraded", "db": ok}, status=200 if ok else 503)

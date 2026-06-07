@@ -10,6 +10,11 @@
     CAPA-ready until you've signed every one.
   </p>
 
+  <p style="margin:-1rem 0 2rem;">
+    <a class="btn btn--primary" href="{% url 'rcca:demo' %}">▶ Watch the 60-second demo</a>
+    <span class="sample__cta" style="margin-left:0.8rem;">no API key needed — pre-baked walkthrough</span>
+  </p>
+
   <div class="samples">
     {% for s in samples %}
       <form method="post" action="{% url 'rcca:start_sample' s.nc_id %}">

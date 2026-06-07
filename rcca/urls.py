@@ -6,6 +6,7 @@ app_name = "rcca"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("demo", views.demo, name="demo"),
     path("healthz", views.healthz, name="healthz"),
     path("samples/<slug:nc_id>/start", views.start_sample, name="start_sample"),
     path("investigations/<int:pk>/", views.workspace, name="workspace"),

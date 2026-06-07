@@ -160,6 +160,31 @@ def test_export_preview_shows_document_and_download_link(client, investigation):
     assert reverse("rcca:export_md", args=[investigation.pk]).encode() in response.content
 
 
+def test_ensure_demo_investigation_is_idempotent_and_capa_ready(db):
+    from rcca.demo import DEMO_NC_ID, ensure_demo_investigation
+
+    inv1 = ensure_demo_investigation()
+    inv2 = ensure_demo_investigation()
+
+    assert inv1.pk == inv2.pk  # idempotent — one canonical demo investigation
+    assert Investigation.objects.filter(nonconformance__nc_id=DEMO_NC_ID).count() == 1
+    assert inv1.is_capa_ready
+    # the demo NC is not a clickable sample
+    assert DEMO_NC_ID not in corpus.SAMPLE_NCS
+
+
+def test_demo_page_renders_the_full_walkthrough(client, db):
+    response = client.get(reverse("rcca:demo"))
+    assert response.status_code == 200
+    body = response.content
+    assert b"PD-LOT-AN-42" in body          # a cited evidence id (D4 panel)
+    assert b"5/5" in body                    # the readiness meter, fully signed
+    assert b"Agent proposed" in body         # the audit diff columns
+    assert b"Engineer" in body
+    assert b"8D / CAPA" in body              # the rendered export document heading
+    assert reverse("rcca:home").encode() in body  # the "try it yourself" CTA
+
+
 def test_audit_view_shows_proposal_vs_final_and_events(client, investigation):
     section = investigation.sections.get(d_number="D2")
     client.post(
