@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M1 complete (trust backbone).** The domain model + sign-off state machine are built TDD and fully tested; **M2 (synthetic corpus + retrieval tools) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
+**M2 complete (corpus + retrieval tools).** The trust backbone (M1) and a static synthetic corpus with pure retrieval tools are built and tested; **M3 (the grounded Claude agent) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
 
@@ -13,6 +13,12 @@ Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rc
 - `Investigation.is_capa_ready` is a **derived property with no setter** — it's a function of section states, never stored. Keep it that way; that's what makes "you cannot force CAPA-ready" true.
 - Models live in `rcca/models.py` (declarative); behavior lives in `rcca/state.py`. `CandidateCause`/`EvidenceRef` exist but are inert until the agent fills them in M3.
 - Schema changes: one migration so far (`rcca/migrations/0001_initial.py`). Run `makemigrations` after model edits; CI runs `makemigrations --check`.
+
+**Corpus + retrieval tools (M2):**
+- `rcca/corpus/` is the single source of truth for synthetic data — frozen dataclasses with **stable IDs** (`records.py` = types, `data.py` = authored instances). Fictional only; never add real employer data.
+- `rcca/agent/tools.py` holds the pure retrieval tools (`get_spec`, `get_process_data`, `search_prior_ncs`). Every result carries a citation envelope (`source_type`, `source_id`, `locator`) so M3 builds `EvidenceRef` directly. The agent must reach the corpus **only** through these tools (fetch, not recall).
+- **Answer key:** `SampleNC.planted_root_cause` is the planted true cause for judging the agent — test-only, never returned by any tool, never put in a prompt. A test (`test_no_tool_ever_returns_a_planted_root_cause`) enforces this; keep it passing.
+- `NC-DEMO-004` / `LOT-MX-55` is the deliberately thin-evidence case for M3's "insufficient evidence" grounding test — its data reads near-nominal on purpose.
 
 ## What this project is
 

@@ -43,3 +43,10 @@ Built TDD; full design + transition table in `docs/superpowers/specs/2026-06-07-
 - **Editing an Approved section reverts it** to `Engineer-edited` and clears the approver. Approved text can never silently change, and readiness self-corrects the instant any section is touched.
 - **All five sections (D2/D3/D4/D5/D7) required**; approver captured as a free-text name + timestamp (no auth — a demo session is enough, `SPEC.md` §4.4).
 - **Tests validated by mutation:** after the suite went green, each invariant (revert, empty-text guard, no-op re-approve, `is_capa_ready`) was broken to confirm a test caught it — guarding against tests that pass for the wrong reason.
+
+### M2 — synthetic corpus + retrieval tools (recorded as built)
+Built TDD; full design in `docs/superpowers/specs/2026-06-07-m2-corpus-tools-design.md`.
+- **Static Python corpus, pure-function tools.** The corpus (`rcca/corpus/`) is frozen dataclasses with stable IDs; the tools (`rcca/agent/tools.py`) are pure functions over it. Reproducible demos, isolation-testable, and no DB coupling — the agent fetches evidence rather than recalling it.
+- **The answer key is structurally isolated.** Each NC's planted true root cause lives only on `SampleNC`, which no tool returns; a test asserts no tool result ever leaks it. This is what lets me honestly judge whether the agent *found* the cause vs. was handed it — the backbone of the M3 grounding claim.
+- **A deliberately thin-evidence NC** (near-nominal data) is authored now so M3's "insufficient evidence, not a fabricated cause" behavior can be demonstrated on real data.
+- **Citation envelope on every result** (`source_type`/`source_id`/`locator`) so grounding in M3 maps a tool result straight to an `EvidenceRef`. Prior-NC root causes are legitimately citable (closed NCs); recurrence is an intended signal, distinct from the current NC's hidden answer key.
