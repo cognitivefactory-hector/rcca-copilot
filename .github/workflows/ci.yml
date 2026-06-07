@@ -38,5 +38,7 @@ jobs:
       - run: pip install ".[dev]"
       - name: Lint
         run: ruff check .
+      - name: Check migrations are up to date
+        run: python manage.py makemigrations --check --dry-run
       - name: Test
         run: pytest -q
