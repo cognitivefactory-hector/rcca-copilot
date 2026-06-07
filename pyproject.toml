@@ -1,0 +1,40 @@
+[project]
+name = "rcca-copilot"
+version = "0.1.0"
+description = "An AI agent that drafts a structured 8D / 5-Why RCCA investigation — the engineer stays the decider; nothing reaches a CAPA without human sign-off."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "Hector Garza", email = "hectorg@smartxchain.com" }]
+dependencies = [
+    "django>=5.1,<6.0",
+    "psycopg[binary]>=3.2",
+    "django-htmx>=1.21",
+    "anthropic>=0.40",
+    "gunicorn>=23.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "ruff>=0.8",
+]
+
+[tool.setuptools.packages.find]
+# Flat layout has two top-level packages; declare them so setuptools
+# doesn't fail auto-discovery on `pip install .`.
+include = ["config*", "rcca*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "tests.py"]
+testpaths = ["tests"]

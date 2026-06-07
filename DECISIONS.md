@@ -28,3 +28,10 @@ Investigation drafting drops from hours to minutes, every RCCA comes out in a co
 - **AI:** Anthropic SDK; tool-use for evidence retrieval (the agent fetches, doesn't recall, so claims are traceable); structured output per 8D section; prompt caching of the method guide + corpus; citations per cause.
 - **Trust backbone built first:** the `Drafted → Edited → Approved` state machine and the grounding rule (cite or "insufficient evidence") — before the agent.
 - **Host:** Render (Dockerized + Postgres) behind Cloudflare. `ANTHROPIC_API_KEY` never committed.
+
+### M0 — scaffold (recorded as built)
+- **Runtime:** Python 3.12, Django 5.1, Postgres 16, `psycopg` 3 (binary). `django-htmx` in from the start so the M4 section-state UI has its middleware ready.
+- **Project shape:** `config/` project package + a single `rcca/` app; settings are environment-driven (12-factor) so the same image runs locally and on Render. `python-dotenv` loads `.env` in dev; the host injects real env vars in prod.
+- **Local run:** one command — `docker compose up` brings up Postgres + the web app, runs migrations, and serves on `:8000`. A `/healthz` endpoint and the home page both assert live DB connectivity (the M0 acceptance criterion).
+- **Quality gate:** `pytest` + `ruff` wired into GitHub Actions CI against a Postgres service container. **No `ANTHROPIC_API_KEY` in CI** — the agent gets mocked in unit tests (per `PLAN.md` testing strategy), so live API calls never run in CI.
+- **Model choice (default, revisit at M3):** orchestration will be written model-agnostic (model id read from config). Default to **`claude-sonnet-4-6`** for the cost-capped public demo (`SPEC.md` §9), with **`claude-opus-4-8`** as the drop-in option when D4 root-cause reasoning needs the extra depth. Rationale belongs on camera; this is the starting position, not a locked call. *(Open question from `SPEC.md` §11.)*
