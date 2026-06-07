@@ -22,6 +22,11 @@ dev = [
     "ruff>=0.8",
 ]
 
+[tool.setuptools.packages.find]
+# Flat layout has two top-level packages; declare them so setuptools
+# doesn't fail auto-discovery on `pip install .`.
+include = ["config*", "rcca*"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
