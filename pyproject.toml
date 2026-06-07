@@ -12,6 +12,7 @@ dependencies = [
     "django-htmx>=1.21",
     "anthropic>=0.40",
     "gunicorn>=23.0",
+    "whitenoise>=6.7",
     "python-dotenv>=1.0",
 ]
 

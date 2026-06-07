@@ -1,0 +1,49 @@
+# Render blueprint — Dockerized Django web service + managed Postgres.
+# Deploy: Render Dashboard → New → Blueprint → pick this repo. Then set
+# ANTHROPIC_API_KEY in the web service's Environment tab. See DEPLOY.md.
+databases:
+  - name: rcca-db
+    databaseName: rcca
+    user: rcca
+    plan: free
+
+services:
+  - type: web
+    name: rcca-copilot
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false              # set in the dashboard — never committed
+      - key: RCCA_MODEL
+        value: claude-opus-4-8
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: rcca-copilot.onrender.com,rcca.hector-garza.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://rcca-copilot.onrender.com,https://rcca.hector-garza.com
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: rcca-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: rcca-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: rcca-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: rcca-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: rcca-db
+          property: password
