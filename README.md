@@ -2,6 +2,8 @@
 
 An AI agent that drafts a structured root-cause-and-corrective-action (8D / 5-Why) investigation from a manufacturing nonconformance — built so the engineer stays the decider and **nothing reaches a CAPA without human sign-off**.
 
+**▶ Live demo: [rcca.hector-garza.com](https://rcca.hector-garza.com)**
+
 > **Illustrative tool on synthetic data — not a quality system of record. A qualified engineer signs every CAPA.**
 
 Part of [hector-garza.com](https://hector-garza.com)'s portfolio. One of **three deliverables of equal weight**: the app, a **Decision Record** ([`DECISIONS.md`](./DECISIONS.md)), and a recorded whiteboard session. A working demo no longer proves competence — the judgment behind it does. See [`SPEC.md`](./SPEC.md) §0.
@@ -69,6 +71,6 @@ Dockerized Django + Postgres on **Render**, fronted by **Cloudflare** (`rcca.hec
 
 ## Links
 
-- 🔗 Live demo: _TBD (deploy via `DEPLOY.md`)_
+- 🔗 **Live demo: [rcca.hector-garza.com](https://rcca.hector-garza.com)** (Render free tier — first load may cold-start; picking a sample runs the live agent, ~10–30s)
 - 🧠 Decision record: [`DECISIONS.md`](./DECISIONS.md)
 - 🎥 Whiteboard walkthrough: _TBD_
