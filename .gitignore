@@ -23,3 +23,6 @@ db.sqlite3
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Deploy secrets (never commit)
+deploy/.secrets
