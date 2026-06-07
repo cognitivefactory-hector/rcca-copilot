@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M2 complete (corpus + retrieval tools).** The trust backbone (M1) and a static synthetic corpus with pure retrieval tools are built and tested; **M3 (the grounded Claude agent) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
+**M3 complete (grounded agent).** The trust backbone (M1), synthetic corpus + tools (M2), and the Claude agent that drafts cited 8D content with grounding enforcement are built and tested; **M4 (investigation workspace UI) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
 
@@ -19,6 +19,13 @@ Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rc
 - `rcca/agent/tools.py` holds the pure retrieval tools (`get_spec`, `get_process_data`, `search_prior_ncs`). Every result carries a citation envelope (`source_type`, `source_id`, `locator`) so M3 builds `EvidenceRef` directly. The agent must reach the corpus **only** through these tools (fetch, not recall).
 - **Answer key:** `SampleNC.planted_root_cause` is the planted true cause for judging the agent — test-only, never returned by any tool, never put in a prompt. A test (`test_no_tool_ever_returns_a_planted_root_cause`) enforces this; keep it passing.
 - `NC-DEMO-004` / `LOT-MX-55` is the deliberately thin-evidence case for M3's "insufficient evidence" grounding test — its data reads near-nominal on purpose.
+
+**Grounded agent (M3):**
+- Two-phase orchestration in `rcca/agent/orchestrator.py`: Phase 1 is a manual tool-use loop (gather evidence via `tool_defs.TOOL_DEFS`/`handle_tool_use`); Phase 2 emits the structured 8D via `output_config.format` (schema in `schemas.py`). Model id comes from `settings.RCCA_MODEL` (default `claude-opus-4-8`); pass `client=`/`model=` to override (tests inject a fake).
+- **`enforce_grounding(draft)` is the load-bearing guarantee** — it raises `GroundingError` on any cause with no evidence that isn't flagged `insufficient_evidence`. `run_investigation` always calls it. Don't weaken it; it's the "no naked claims" rule in code, and it's mutation-tested.
+- `persist.py` writes a draft into the M1 models: `agent_proposed_text` + seeded `current_text`, sections stay `Drafted`, a `draft` AuditEvent (actor `agent`) per section, plus D4 `CandidateCause`/`EvidenceRef`. The agent never advances sign-off state — only the engineer does (M1 rule).
+- **Anthropic API is mocked in CI** (`FakeAnthropicClient` in `tests/test_agent.py`). The real-model behavior is covered by `tests/test_agent_live.py`, which skips without `ANTHROPIC_API_KEY` (so it never runs in CI). Keep live calls out of CI to avoid burning tokens.
+- SDK surface (Opus 4.8): adaptive thinking only (no `budget_tokens`), no `temperature`/`top_p`; structured outputs via `output_config.format`. If touching the agent and unsure about SDK details, invoke the `claude-api` skill.
 
 ## What this project is
 
