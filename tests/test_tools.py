@@ -98,3 +98,21 @@ def test_no_tool_ever_returns_a_planted_root_cause():
 def test_corpus_carries_a_synthetic_data_disclaimer():
     assert corpus.DISCLAIMER
     assert "fictional" in corpus.DISCLAIMER.lower()
+
+
+def test_composite_sample_is_present_and_grounded():
+    # A 5th sample: a carbon-fiber laminate porosity (void content) NC.
+    nc = corpus.SAMPLE_NCS["NC-DEMO-005"]
+    assert "composite" in nc.process.lower() or "laminate" in nc.title.lower()
+
+    # Spec and per-lot process data resolve as citable records.
+    spec = tools.get_spec(nc.spec_violated)
+    assert "void" in (spec["requirement"] + spec["title"]).lower()
+
+    data = tools.get_process_data(nc.lot)
+    params = {row["parameter"] for row in data["rows"]}
+    assert "autoclave_pressure_psi" in params  # the cause leaves a signature
+
+    # Recurrence search finds the prior composite porosity NC.
+    hits = tools.search_prior_ncs("composite laminate porosity autoclave")
+    assert any(h["source_type"] == "prior_nc" for h in hits)
