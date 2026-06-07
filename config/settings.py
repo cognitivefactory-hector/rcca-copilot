@@ -28,6 +28,10 @@ CSRF_TRUSTED_ORIGINS = [
 # The agent layer reads this at request time; absence is tolerated until M3.
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
+# The Claude model the RCCA agent runs on. Model-agnostic orchestration — swap
+# to claude-sonnet-4-6 to trade depth for cost on the public demo.
+RCCA_MODEL = os.environ.get("RCCA_MODEL", "claude-opus-4-8")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
