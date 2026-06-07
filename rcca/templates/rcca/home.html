@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RCCA Copilot</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 16px/1.6 system-ui, sans-serif; max-width: 44rem; margin: 4rem auto; padding: 0 1.5rem; }
+    h1 { margin-bottom: .25rem; }
+    .tag { color: #888; margin-top: 0; }
+    .status { display: inline-block; padding: .2rem .6rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+    .ok { background: #1b5e20; color: #fff; }
+    .bad { background: #b71c1c; color: #fff; }
+    footer { margin-top: 3rem; font-size: .8rem; color: #888; border-top: 1px solid #4444; padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>RCCA Copilot</h1>
+  <p class="tag">8D / 5-Why investigation drafting — the engineer stays the decider.</p>
+
+  <p>
+    Database:
+    {% if db_ok %}
+      <span class="status ok">connected</span>
+    {% else %}
+      <span class="status bad">unavailable</span>
+    {% endif %}
+  </p>
+
+  <p>Scaffold is live (milestone M0). Build follows <code>PLAN.md</code>: M1 sign-off
+  state machine &rarr; M2 corpus + tools &rarr; M3 grounded agent.</p>
+
+  <footer>
+    Simulated data; not affiliated with any employer. Drafting aid —
+    a qualified engineer signs every CAPA.
+  </footer>
+</body>
+</html>

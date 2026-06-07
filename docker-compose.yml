@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rcca}
+      POSTGRES_USER: ${POSTGRES_USER:-rcca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rcca}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rcca}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_DEBUG: "True"
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-rcca}
+      POSTGRES_USER: ${POSTGRES_USER:-rcca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rcca}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - .:/app
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: rcca
+          POSTGRES_USER: rcca
+          POSTGRES_PASSWORD: rcca
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rcca"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      DJANGO_SECRET_KEY: ci-secret
+      # No ANTHROPIC_API_KEY in CI: the agent is mocked in unit tests (PLAN.md).
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest -q
