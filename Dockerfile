@@ -14,5 +14,6 @@ COPY . .
 
 EXPOSE 8000
 
-# entrypoint applies migrations then serves; overridable in compose.
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+# entrypoint: migrate, collect static (whitenoise serves them), then serve.
+# Overridden in docker-compose for local dev (runserver). $PORT is set by Render.
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]

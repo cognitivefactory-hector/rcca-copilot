@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M5 complete (export + audit).** The full pipeline works end to end: pick a sample → cited 8D draft → edit/approve → export the 8D/CAPA Markdown (gated on CAPA-ready) and view the agent-vs-engineer audit trail. **M6 (README polish + deploy) is next, then M7 (decision record + whiteboard).** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
+**M6 complete (polish + deploy-ready).** The app is production-hardened (whitenoise static, security settings, `render.yaml` blueprint), the README has real screenshots, and `DEPLOY.md` has the Render+Cloudflare steps. The live deploy itself is **owner-run** (needs their Render/Cloudflare accounts + real `ANTHROPIC_API_KEY`). **M7 (decision record completion + recorded whiteboard session) is the last milestone — the human deliverables.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
 
@@ -73,6 +73,10 @@ Build the **trust backbone before the AI.** The state machine and grounding enfo
 - **The state machine and grounding rules get tested hard** — they encode the judgment. Other areas (UI) are demonstrated by the recording, not chased for coverage.
 - **Mock the Anthropic API in unit tests.** Keep the one or two live integration runs out of CI to avoid burning tokens.
 - **Adversarial fixture is mandatory:** an NC with no supporting evidence must yield `insufficient_evidence`, never a fabricated root cause. This single behavior is the core defense (`WHITEBOARD-DRILL.md` Q3).
+
+## Deploy (M6)
+
+Production config lives in `config/settings.py` (whitenoise + `STORAGES` manifest store only when `DEBUG=False`; security headers + `SECURE_PROXY_SSL_HEADER` for the Render/Cloudflare proxy), the `Dockerfile` prod CMD (`migrate` → `collectstatic` → gunicorn on `$PORT`), and `render.yaml` (Docker web service + managed Postgres; `ANTHROPIC_API_KEY` is `sync: false`). Steps in `DEPLOY.md`. Local dev/CI keep `DEBUG=True`, so no collectstatic is needed for tests. README screenshots are in `docs/media/` (captured via the playwright MCP, which writes into the repo cwd; `.playwright-mcp/` is gitignored).
 
 ## Planned stack & commands
 
