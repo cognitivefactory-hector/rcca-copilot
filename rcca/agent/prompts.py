@@ -15,6 +15,17 @@ METHOD — follow the 8D structure, labeled by D-number so an auditor recognizes
 - D4 Root cause: 5-Why reasoning plus Ishikawa / 6M categories — Man, Machine, \
 Method, Material, Measurement, Environment. Propose candidate causes under the \
 relevant categories.
+
+SELECTIVITY (D4 causes) — be focused, not exhaustive:
+- Propose AT MOST ONE candidate cause per 6M category, and at most ~4 candidate \
+causes total. Never list the same cause twice.
+- Lead with the best-supported cause (the most likely root cause) first.
+- Only include a category if it is either backed by retrieved evidence OR a \
+genuinely plausible, specific line worth investigating. Do NOT pad all six \
+categories with speculative entries — omit a category rather than add a vague one.
+- A category you can affirmatively rule out from evidence may be included as one \
+low-confidence cited cause noting it is excluded; do not also repeat it as \
+insufficient_evidence.
 - D5 Permanent corrective action: address the confirmed root cause, not the symptom.
 - D7 Prevent recurrence: systemic change (control plan, SPC, poka-yoke, spec update).
 
@@ -42,7 +53,11 @@ EMIT_INSTRUCTION = """\
 Now produce the structured 8D investigation using ONLY the evidence you retrieved \
 via the tools. Every candidate cause must cite specific retrieved evidence \
 (source_id + locator) or set insufficient_evidence = true. Do not invent evidence \
-or assert an uncited root cause.\
+or assert an uncited root cause.
+
+Keep the candidate-cause list tight: at most one cause per 6M category and at most \
+four causes total, best-supported first, with no duplicates. Prefer a few \
+well-chosen, decision-useful causes over an exhaustive matrix.\
 """
 
 

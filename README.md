@@ -8,7 +8,7 @@ An AI agent that drafts a structured root-cause-and-corrective-action (8D / 5-Wh
 
 Part of [hector-garza.com](https://hector-garza.com)'s portfolio. One of **three deliverables of equal weight**: the app, a **Decision Record** ([`DECISIONS.md`](./DECISIONS.md)), and a recorded whiteboard session. A working demo no longer proves competence — the judgment behind it does. See [`SPEC.md`](./SPEC.md) §0.
 
-![Investigation workspace](docs/media/02-workspace.png)
+[![RCCA Copilot — pick a nonconformance, draft a cited 8D, sign off on the evidence, export](docs/media/composite-demo.png)](https://rcca.hector-garza.com)
 
 ## The thesis
 
@@ -23,11 +23,11 @@ The killer risk it's built against: a confident, plausible, **wrong** root cause
 
 ## What it does
 
-Pick a nonconformance → the agent retrieves process data, the spec, and prior NCs **via tools** (fetch, not recall) → drafts the **8D skeleton** (D2 problem, D3 containment, D4 root cause via **5-Why + Ishikawa/6M**, D5 corrective action, D7 prevent-recurrence) with every cause cited and a confidence level → the engineer edits and **approves** each section → export a clean 8D / CAPA document with the approver of record. Export unlocks **only** when every section is signed.
+Pick a nonconformance → the agent retrieves process data, the spec, and prior NCs **via tools** (fetch, not recall) → drafts the **8D skeleton** (D2 problem, D3 containment, D4 root cause via **5-Why + Ishikawa/6M**, D5 corrective action, D7 prevent-recurrence) with every cause cited and a confidence level → the engineer edits and **approves** each section → export a clean 8D / CAPA document with the approver of record. Export unlocks **only** when every section is signed. (The four panels above show the full flow.)
 
-| Pick a sample | Edit & approve, see the cited evidence | Audit trail | Export |
-|---|---|---|---|
-| ![Home](docs/media/01-home.png) | ![Workspace](docs/media/02-workspace.png) | ![Audit](docs/media/03-audit.png) | ![Export](docs/media/04-export.png) |
+The investigation workspace, where the human signs off on the evidence:
+
+![Investigation workspace — 8D section cards, cited candidate causes, and the process-data trend](docs/media/02-workspace.png)
 
 ## Tech stack
 
