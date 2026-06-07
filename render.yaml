@@ -24,9 +24,10 @@ services:
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
-        value: rcca-copilot.onrender.com,rcca.hector-garza.com
+        # leading-dot wildcard matches whatever *.onrender.com host Render assigns
+        value: .onrender.com,rcca.hector-garza.com
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        value: https://rcca-copilot.onrender.com,https://rcca.hector-garza.com
+        value: https://*.onrender.com,https://rcca.hector-garza.com
       - key: POSTGRES_HOST
         fromDatabase:
           name: rcca-db
