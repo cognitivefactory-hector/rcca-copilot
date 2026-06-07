@@ -7,16 +7,16 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_home_serves_and_reports_db_connected(client):
+def test_home_serves(client):
     response = client.get(reverse("rcca:home"))
     assert response.status_code == 200
     assert b"RCCA Copilot" in response.content
-    # The DB fixture is live, so the connectivity check should pass.
-    assert b"connected" in response.content
 
 
 @pytest.mark.django_db
-def test_healthz_ok(client):
+def test_healthz_reports_db_connectivity(client):
+    # DB connectivity moved to /healthz when the home page became the workspace
+    # picker (M4). The live DB fixture means this should report ok.
     response = client.get(reverse("rcca:healthz"))
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "db": True}

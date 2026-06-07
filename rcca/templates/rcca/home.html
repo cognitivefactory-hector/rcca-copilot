@@ -1,39 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RCCA Copilot</title>
-  <style>
-    :root { color-scheme: light dark; }
-    body { font: 16px/1.6 system-ui, sans-serif; max-width: 44rem; margin: 4rem auto; padding: 0 1.5rem; }
-    h1 { margin-bottom: .25rem; }
-    .tag { color: #888; margin-top: 0; }
-    .status { display: inline-block; padding: .2rem .6rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
-    .ok { background: #1b5e20; color: #fff; }
-    .bad { background: #b71c1c; color: #fff; }
-    footer { margin-top: 3rem; font-size: .8rem; color: #888; border-top: 1px solid #4444; padding-top: 1rem; }
-  </style>
-</head>
-<body>
-  <h1>RCCA Copilot</h1>
-  <p class="tag">8D / 5-Why investigation drafting — the engineer stays the decider.</p>
+{% extends "rcca/base.html" %}
 
-  <p>
-    Database:
-    {% if db_ok %}
-      <span class="status ok">connected</span>
-    {% else %}
-      <span class="status bad">unavailable</span>
-    {% endif %}
+{% block content %}
+  <p class="eyebrow">Root cause &amp; corrective action — human in the loop</p>
+  <h1 class="title">Draft a cited 8D investigation,<br>then sign off on the evidence.</h1>
+  <p class="lede">
+    Pick a nonconformance. The agent retrieves process data, the spec, and prior
+    NCs, then drafts an 8D with every cause cited — or flagged
+    <em>insufficient evidence</em>. You edit and approve each section; nothing is
+    CAPA-ready until you've signed every one.
   </p>
 
-  <p>Scaffold is live (milestone M0). Build follows <code>PLAN.md</code>: M1 sign-off
-  state machine &rarr; M2 corpus + tools &rarr; M3 grounded agent.</p>
-
-  <footer>
-    Simulated data; not affiliated with any employer. Drafting aid —
-    a qualified engineer signs every CAPA.
-  </footer>
-</body>
-</html>
+  <div class="samples">
+    {% for s in samples %}
+      <form method="post" action="{% url 'rcca:start_sample' s.nc_id %}">
+        {% csrf_token %}
+        <button type="submit" class="sample">
+          <span class="sample__id">{{ s.nc_id }}</span>
+          <span class="sample__title">{{ s.title }}</span>
+          <span class="sample__proc">{{ s.process }} · lot {{ s.lot }}</span>
+          <span class="sample__cta">Run RCCA Copilot →</span>
+        </button>
+      </form>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+<section class="section" id="section-{{ section.pk }}">
+  <div class="section__rail">
+    <div class="section__d">{{ section.d_number }}</div>
+    <div class="section__dlabel">step</div>
+  </div>
+  <div class="section__body">
+    <div class="section__head">
+      <span class="section__title">{{ section.title }}</span>
+      <span class="badge badge--{{ section.state }}">{{ section.get_state_display }}</span>
+    </div>
+
+    <textarea class="draft" name="text" form="form-{{ section.pk }}"
+              hx-history="false">{{ section.current_text }}</textarea>
+
+    {% if error %}<div class="err">⚠ {{ error }}</div>{% endif %}
+
+    <div class="controls">
+      <form id="form-{{ section.pk }}" hx-post="{% url 'rcca:edit_section' section.pk %}"
+            hx-target="#section-{{ section.pk }}" hx-swap="outerHTML"
+            hx-include="#engineer">
+        {% csrf_token %}
+        <button type="submit" class="btn">Save edit</button>
+      </form>
+      <form hx-post="{% url 'rcca:approve_section' section.pk %}"
+            hx-target="#section-{{ section.pk }}" hx-swap="outerHTML"
+            hx-include="#engineer, [name='text'][form='form-{{ section.pk }}']">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--approve">Approve ✓</button>
+      </form>
+      {% if section.approver_name %}
+        <span class="state-meta">signed: {{ section.approver_name }}</span>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% if swap_export %}{% include "rcca/partials/_gate.html" %}{% endif %}

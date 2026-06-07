@@ -1,0 +1,13 @@
+<div class="gate" id="gate"{% if swap_export %} hx-swap-oob="true"{% endif %}>
+  <span class="gate__label">CAPA READINESS</span>
+  <div class="gate__meter">
+    {% for on in pips %}<span class="pip {% if on %}on{% endif %}"></span>{% endfor %}
+  </div>
+  <span class="gate__label">{{ approved_count }}/5 SECTIONS SIGNED</span>
+  <span class="gate__spacer"></span>
+  {% if capa_ready %}
+    <a class="btn btn--primary" href="{% url 'rcca:export' investigation.pk %}">Export 8D / CAPA ↧</a>
+  {% else %}
+    <span class="btn" aria-disabled="true" title="Approve every section to unlock">Export locked</span>
+  {% endif %}
+</div>

@@ -1,0 +1,14 @@
+{% extends "rcca/base.html" %}
+{% block title %}Export — {{ investigation.nonconformance.nc_id }}{% endblock %}
+{% block content %}
+  <div class="gatepage">
+    <span class="stamp">CAPA-ready ✓</span>
+    <h1 class="title" style="margin-top:1.5rem;">All sections signed.</h1>
+    <p class="lede" style="margin:0 auto 1.5rem;">
+      Every D-section of {{ investigation.nonconformance.nc_id }} is approved, so the
+      8D / CAPA document can be exported with the approver of record. The rendered
+      document and the agent-vs-engineer audit diff arrive in M5.
+    </p>
+    <a class="btn" href="{% url 'rcca:workspace' investigation.pk %}">← Back to workspace</a>
+  </div>
+{% endblock %}

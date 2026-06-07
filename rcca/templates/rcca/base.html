@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RCCA Copilot{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'rcca/app.css' %}">
+  <script src="https://unpkg.com/htmx.org@2.0.3" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead__inner">
+      <a class="wordmark" href="{% url 'rcca:home' %}">
+        <span class="wordmark__tick">◳</span> RCCA&nbsp;Copilot
+      </a>
+      <span class="masthead__meta">8D · 5-WHY · ISHIKAWA / 6M — DRAFTING AID</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="disclaimer">
+    Simulated data; not affiliated with any employer. Drafting aid —
+    a qualified engineer signs every CAPA.
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

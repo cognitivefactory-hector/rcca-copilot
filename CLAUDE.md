@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-**M3 complete (grounded agent).** The trust backbone (M1), synthetic corpus + tools (M2), and the Claude agent that drafts cited 8D content with grounding enforcement are built and tested; **M4 (investigation workspace UI) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
+**M4 complete (workspace UI).** The full pipeline is now clickable: pick a sample → the agent drafts a cited 8D → edit/approve each section → export unlocks only when CAPA-ready. **M5 (export document + audit-diff view) is next.** The source of truth for design is the planning docs: `SPEC.md` (design spec), `PLAN.md` (milestones M0→M7), `DECISIONS.md` (decision record), and per-milestone specs under `docs/superpowers/specs/`. Read those before writing code.
 
 Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rcca/` (the app) + `tests/` (pytest, top-level). Settings are environment-driven; `.env` (gitignored) feeds local dev, copied from `.env.example`.
 
@@ -26,6 +26,12 @@ Project shape: `config/` (Django project package: settings/urls/wsgi/asgi) + `rc
 - `persist.py` writes a draft into the M1 models: `agent_proposed_text` + seeded `current_text`, sections stay `Drafted`, a `draft` AuditEvent (actor `agent`) per section, plus D4 `CandidateCause`/`EvidenceRef`. The agent never advances sign-off state — only the engineer does (M1 rule).
 - **Anthropic API is mocked in CI** (`FakeAnthropicClient` in `tests/test_agent.py`). The real-model behavior is covered by `tests/test_agent_live.py`, which skips without `ANTHROPIC_API_KEY` (so it never runs in CI). Keep live calls out of CI to avoid burning tokens.
 - SDK surface (Opus 4.8): adaptive thinking only (no `budget_tokens`), no `temperature`/`top_p`; structured outputs via `output_config.format`. If touching the agent and unsure about SDK details, invoke the `claude-api` skill.
+
+**Workspace UI (M4):**
+- Views in `rcca/views.py`, templates in `rcca/templates/rcca/`, design system in `rcca/static/rcca/app.css` (engineering-document aesthetic: Saira/Hanken Grotesk/JetBrains Mono, blueprint grid, semantic state colors). HTMX for edit/approve (swap the section-card partial; the readiness gate updates via `hx-swap-oob`). Plotly (CDN) charts the cited lot's process data.
+- **Picking a sample auto-runs the agent once** (`start_sample`), then is idempotent — re-picking shows the existing investigation without re-running (the cost guard). The agent call needs `ANTHROPIC_API_KEY`; to view the workspace without a key, seed an investigation + `persist_draft` via `manage.py shell`.
+- All section mutations go through `state.py` (edit/approve) — the views never touch `Section.state` directly. **Export is gated on `is_capa_ready`** (`export` view returns 403 until every section is approved); that gate is mutation-tested.
+- View tests (`tests/test_views.py`) mock the agent (`monkeypatch rcca.views.run_investigation`). The M0 home smoke test moved DB connectivity to `/healthz` when home became the sample picker.
 
 ## What this project is
 

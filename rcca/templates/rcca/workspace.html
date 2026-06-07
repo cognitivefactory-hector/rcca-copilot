@@ -1,0 +1,79 @@
+{% extends "rcca/base.html" %}
+{% block title %}{{ nc.nc_id }} — RCCA Copilot{% endblock %}
+{% block head %}<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>{% endblock %}
+
+{% block content %}
+  <p class="eyebrow">Investigation workspace</p>
+
+  <div class="specsheet">
+    <div class="specsheet__head">
+      <strong>{{ nc.nc_id }} · {{ nc.title }}</strong>
+      <input id="engineer" name="engineer" value="Engineer" aria-label="Engineer name"
+             style="font-family:var(--mono);font-size:0.75rem;border:1px solid var(--line);padding:0.3rem 0.5rem;background:var(--paper);">
+    </div>
+    <div class="specsheet__grid">
+      <div class="field"><div class="field__k">Part</div><div class="field__v">{{ nc.part_number }}</div></div>
+      <div class="field"><div class="field__k">Lot</div><div class="field__v">{{ nc.lot }}</div></div>
+      <div class="field"><div class="field__k">Process</div><div class="field__v">{{ nc.process }}</div></div>
+      <div class="field"><div class="field__k">Spec</div><div class="field__v">{{ nc.spec_violated }}</div></div>
+      <div class="field"><div class="field__k">Measured</div><div class="field__v alarm">{{ nc.measured_value }}</div></div>
+      <div class="field"><div class="field__k">Required</div><div class="field__v">{{ nc.required_value }}</div></div>
+    </div>
+  </div>
+
+  {% include "rcca/partials/_gate.html" %}
+
+  {% for section in sections %}
+    {% include "rcca/partials/_section_card.html" %}
+    {% if section.d_number == "D4" %}
+      <div class="evidence" style="margin:-0.4rem 0 1.4rem;padding:1.2rem 1.25rem;border:1px dashed var(--line);background:var(--paper-2);">
+        <div class="evidence__h">D4 · candidate causes &amp; cited evidence</div>
+        {% for cause in causes %}
+          <div class="cause">
+            <div class="cause__top">
+              <span class="tag">{{ cause.get_category_display }}</span>
+              {% if cause.insufficient_evidence %}
+                <span class="conf conf--insufficient">Insufficient evidence</span>
+              {% else %}
+                <span class="conf conf--{{ cause.confidence }}">{{ cause.get_confidence_display }} confidence</span>
+              {% endif %}
+            </div>
+            <p class="cause__desc">{{ cause.description }}</p>
+            {% if cause.evidence_refs.all %}
+              <div class="cites">
+                {% for ev in cause.evidence_refs.all %}
+                  <span class="cite"><b>{{ ev.source_id }}</b> · {{ ev.locator }} — {{ ev.excerpt }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="cites"><span class="cite">No supporting evidence — investigate further.</span></div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="cause__desc">No candidate causes drafted.</p>
+        {% endfor %}
+        <div id="chart"></div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const chart = {{ chart_json|safe }};
+  if (chart && document.getElementById("chart")) {
+    const traces = chart.series.map(s => ({
+      x: s.x, y: s.y, name: s.name, mode: "lines+markers", type: "scatter"
+    }));
+    Plotly.newPlot("chart", traces, {
+      title: { text: "Process data — " + chart.source_id, font: { family: "Saira", size: 14 } },
+      margin: { t: 40, r: 16, b: 48, l: 48 },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      font: { family: "JetBrains Mono", size: 10, color: "#41505f" },
+      xaxis: { title: "record", tickangle: -40 },
+      legend: { orientation: "h", y: -0.35 }
+    }, { displayModeBar: false, responsive: true });
+  }
+</script>
+{% endblock %}
