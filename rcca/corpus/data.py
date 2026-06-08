@@ -51,6 +51,16 @@ SPECS: dict[str, Spec] = {
         text="Finished bore diameter shall be within tolerance after final machining.",
         requirement="Bore diameter 12.00 ± 0.03 mm.",
     ),
+    "SPEC-CMP-1": Spec(
+        spec_id="SPEC-CMP-1",
+        title="Carbon/Epoxy Laminate — Void Content (Porosity)",
+        clause="§5.3",
+        text=(
+            "Cured structural laminate shall be assessed for porosity by ultrasonic "
+            "C-scan and cross-section; void content shall not exceed the limit."
+        ),
+        requirement="Void content ≤ 2.0% (by area).",
+    ),
 }
 
 # --- Process data (per lot) -------------------------------------------------
@@ -98,6 +108,31 @@ PROCESS_DATA: dict[str, ProcessData] = {
             ProcessDataRow("PD-ET-09-02", "T+02:00", "etch_bath_temp_C", 32.1, "above range"),
             ProcessDataRow("PD-ET-09-03", "run", "etch_time_s", 120.0, "nominal"),
             ProcessDataRow("PD-ET-09-04", "measure", "slot_width_mm", 0.56, "over high limit"),
+        ),
+    ),
+    # Composite: autoclave consolidation pressure sagged during the cure hold ->
+    # inadequate void compaction -> porosity above the limit.
+    "LOT-CMP-21": ProcessData(
+        source_id="PD-LOT-CMP-21",
+        lot="LOT-CMP-21",
+        process="Autoclave cure — carbon/epoxy laminate",
+        rows=(
+            ProcessDataRow(
+                "PD-CMP-21-01", "T+00:00", "autoclave_pressure_psi", 85.0, "at setpoint"
+            ),
+            ProcessDataRow("PD-CMP-21-02", "T+30:00", "autoclave_pressure_psi", 84.0, ""),
+            ProcessDataRow(
+                "PD-CMP-21-03", "T+60:00", "autoclave_pressure_psi", 46.0, "below setpoint (hold)"
+            ),
+            ProcessDataRow(
+                "PD-CMP-21-04", "T+90:00", "autoclave_pressure_psi", 44.0, "below setpoint"
+            ),
+            ProcessDataRow("PD-CMP-21-05", "T+120:00", "autoclave_pressure_psi", 83.0, "recovered"),
+            ProcessDataRow("PD-CMP-21-06", "cure", "part_temp_F", 355.0, "in range (350±10)"),
+            ProcessDataRow("PD-CMP-21-07", "cure", "vacuum_inHg", 28.0, "in range"),
+            ProcessDataRow(
+                "PD-CMP-21-08", "measure", "void_content_pct", 4.5, "above 2.0% limit"
+            ),
         ),
     ),
     # Thin-evidence case: everything reads near-nominal; data gives no clear cause.
@@ -161,6 +196,21 @@ PRIOR_NCS: tuple[PriorNC, ...] = (
         root_cause="Rinse water conductivity drifted high between DI regenerations.",
         corrective_action="Tightened rinse conductivity monitoring and regeneration schedule.",
         keywords=("passivation", "stain", "rinse", "conductivity", "stainless"),
+    ),
+    PriorNC(
+        nc_id="NC-PRIOR-105",
+        title="Porosity in autoclave-cured composite spar",
+        process="Autoclave cure — carbon/epoxy laminate",
+        defect_description="C-scan indications and elevated void content on a cured laminate.",
+        root_cause=(
+            "Autoclave lost consolidation pressure mid-cure after a door-seal leak, "
+            "leaving the laminate under-compacted."
+        ),
+        corrective_action=(
+            "Added a pressure-decay check before each cure and a cure-pressure alarm; "
+            "replaced the door seal."
+        ),
+        keywords=("composite", "laminate", "porosity", "void", "autoclave", "pressure", "cure"),
     ),
 )
 
@@ -239,6 +289,25 @@ SAMPLE_NCS: dict[str, SampleNC] = {
             "Indeterminate from the available data — process parameters read nominal and a "
             "single marginal part is within measurement uncertainty; a gauge R&R and more "
             "sampling are needed before a cause can be claimed."
+        ),
+    ),
+    "NC-DEMO-005": SampleNC(
+        nc_id="NC-DEMO-005",
+        title="Composite laminate porosity above void-content limit",
+        part_number="PN-CF-9920",
+        lot="LOT-CMP-21",
+        process="Autoclave cure — carbon/epoxy laminate",
+        defect_description=(
+            "Ultrasonic C-scan of lot LOT-CMP-21 shows void content of 4.5%, above the "
+            "2.0% laminate limit (SPEC-CMP-1)."
+        ),
+        spec_violated="SPEC-CMP-1",
+        measured_value="4.5% voids",
+        required_value="≤ 2.0%",
+        planted_root_cause=(
+            "Autoclave consolidation pressure dropped to ~45 psi during the cure hold, "
+            "so the laminate was not fully compacted and entrapped volatiles/air were not "
+            "driven out — raising void content above the limit."
         ),
     ),
 }
